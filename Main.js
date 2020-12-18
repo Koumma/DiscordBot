@@ -123,7 +123,7 @@ client.on('message', message =>
 
     if (command === "help")
     {
-        message.channel.send("coucou je suis jonath je suis méchant agrougrou je vais te manger <@710196629348810882>");
+        message.channel.send("coucou je suis jonath je suis méchant <@710196629348810882>");
     }
     else if (command === "prefix" && args.length === 0)
     {
@@ -169,7 +169,7 @@ client.on('message', message =>
     else if (command === "ftg")
     {
         if (FTGmode) message.channel.send("c'est bon vous pouvez parler :D");
-        else message.channel.send("fermez tous vos gueules je vous kick bande de chiennes");
+        else message.channel.send("chut");
         FTGmode = !FTGmode;
     }
     else if (command === "conjugaison" || command === "cj")
@@ -364,7 +364,7 @@ client.on('message', message =>
             },
             "fields": [
                 {
-                    "name": "nous suçâmes",
+                    "name": "nous ",
                     "value": "oui tres\nsexxxxxxx"
                 },
                 {
@@ -374,7 +374,7 @@ client.on('message', message =>
                 },
                 {
                     "name": "<:getdosched:675429413848088576>",
-                    "value": "couille du subjonctif bite",
+                    "value": "du subjonctif ",
                     "inline": true
                 },
                 {
@@ -491,7 +491,7 @@ client.on('message', message =>
     }
     else
     {
-        message.channel.send('apprends à écritre sale piute')
+        message.channel.send('apprent a écritre ')
     }
 
 });
