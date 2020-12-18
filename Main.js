@@ -72,8 +72,6 @@ function avgPriceItemPromise(item, embed)
                 embed.description += "[" + item.name + "](https://warframe.market/items/" +
                     item.name.replace(/ /g, '_').toLowerCase() + ") Ducats : " + item.ducats + " ducats " +
                     "Prix : " + avgPrice + " pl\n";
-
-                console.log("j'ai resolu :D");
                 resolve(embed);
             });
         }).on('error', function (e) {
@@ -122,7 +120,7 @@ client.on('message', message =>
 
     if (command === "help")
     {
-        message.channel.send("coucou je suis jonath je suis méchant agrougrou je vais te manger <@710196629348810882>");
+        message.channel.send("prefix, send, join, leave, ftg, cj, r, salut");
     }
     else if (command === "prefix" && args.length === 0)
     {
@@ -168,7 +166,7 @@ client.on('message', message =>
     else if (command === "ftg")
     {
         if (FTGmode) message.channel.send("c'est bon vous pouvez parler :D");
-        else message.channel.send("fermez tous vos gueules je vous kick bande de chiennes");
+        else message.channel.send("roi du silence");
         FTGmode = !FTGmode;
     }
     else if (command === "conjugaison" || command === "cj")
@@ -369,7 +367,7 @@ client.on('message', message =>
             },
             "fields": [
                 {
-                    "name": "nous suçâmes",
+                    "name": "nous",
                     "value": "oui tres\nsexxxxxxx"
                 },
                 {
@@ -379,7 +377,7 @@ client.on('message', message =>
                 },
                 {
                     "name": "<:getdosched:675429413848088576>",
-                    "value": "couille du subjonctif bite",
+                    "value": " du  ",
                     "inline": true
                 },
                 {
@@ -500,8 +498,6 @@ client.on('message', message =>
                 (async function ()
                 {
                     await makeSynchronousRequest();
-
-                    console.log("J4ENVOIE LE MESSAGE");
                     message.channel.send({ embed })
 
                 })();
@@ -517,7 +513,7 @@ client.on('message', message =>
     }
     else
     {
-        message.channel.send('apprends à écritre sale piute')
+        message.channel.send('apprent a écritre')
     }
 
 });
