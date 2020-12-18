@@ -43,9 +43,9 @@ function sleep(milliseconds)
     } while (currentDate - date < milliseconds);
 }
 
-async function avgPriceItem(items, embed)
+function avgPriceItemPromise(item, embed)
 {
-    items.forEach( item =>
+    return new Promise( (resolve, reject) =>
     {
         // transforme exemple : "Stradavar Prime Receiver" en "stradavar_prime_receiver"
         let itemURL = item.name.toLowerCase().replace(/ /g, "_").replace(/&amp;/g, "and");
@@ -57,13 +57,11 @@ async function avgPriceItem(items, embed)
 
         let avgPrice = 0;
 
-        https.get(optionsItem, function(res)
-        {
+        https.get(optionsItem, (res) => {
             let html = "";
             res.on('data', (chunk) => html += chunk);
 
-            res.on('end', () =>
-            {
+            res.on('end', () => {
                 console.log("GET on : api.warframe.market/v1/items/" + itemURL + "/statistics --- GOT " + res.statusCode);
 
                 let response = JSON.parse(html);
@@ -75,17 +73,18 @@ async function avgPriceItem(items, embed)
                     item.name.replace(/ /g, '_').toLowerCase() + ") Ducats : " + item.ducats + " ducats " +
                     "Prix : " + avgPrice + " pl\n";
 
-                console.log("")
-
+                console.log("j'ai resolu :D");
+                resolve(embed);
             });
-        }).on('error', function(e)
-        {
+        }).on('error', function (e) {
             console.log("Got error: " + e.message);
+            reject(e);
         });
 
         // l'API de warframe market nous limite à 3 requetes par secondes on doit donc attendre
         sleep(400);
     });
+
 }
 
 
@@ -123,7 +122,7 @@ client.on('message', message =>
 
     if (command === "help")
     {
-        message.channel.send("coucou je suis jonath je suis méchant <@710196629348810882>");
+        message.channel.send("coucou je suis jonath je suis méchant agrougrou je vais te manger <@710196629348810882>");
     }
     else if (command === "prefix" && args.length === 0)
     {
@@ -169,7 +168,7 @@ client.on('message', message =>
     else if (command === "ftg")
     {
         if (FTGmode) message.channel.send("c'est bon vous pouvez parler :D");
-        else message.channel.send("chut");
+        else message.channel.send("fermez tous vos gueules je vous kick bande de chiennes");
         FTGmode = !FTGmode;
     }
     else if (command === "conjugaison" || command === "cj")
@@ -183,30 +182,30 @@ client.on('message', message =>
 
         let verbe = args[0];
 
-        if (args.length <= 4 && args.length !== 1)
+        if (args.length === 2)
         {
             verbe = [args[0], args[1]].join('_');
-            if (args.length === 3)
-            {
-                if (modesVerbaux.includes(args[2]))
-                {
-                    modeAffichage = args[2];
-                }
-            }
-            if (args.length === 4)
-            {
-                if (tempsVerbaux.includes(args[3]))
-                {
-                    tempsAffichage = args[3];
-                }
-            }
+            // if (args.length === 3)
+            // {
+            //     if (modesVerbaux.includes(args[2]))
+            //     {
+            //         modeAffichage = args[2];
+            //     }
+            // }
+            // if (args.length === 4)
+            // {
+            //     if (tempsVerbaux.includes(args[3]))
+            //     {
+            //         tempsAffichage = args[3];
+            //     }
+            // }
         }
-        else
-        {
-            message.channel.send("```Utilisation :\n" +
-                "{prefix}(conjugaison | cj) (verbe à conjuger (peut être en 2 mots exemple : se doucher)) (mode et temps de conjugaison exemple : indicatif présent)```");
-            return;
-        }
+        // else
+        // {
+        //     message.channel.send("```Utilisation :\n" +
+        //         "{prefix}(conjugaison | cj) (verbe à conjuger (peut être en 2 mots exemple : se doucher)) (mode et temps de conjugaison exemple : indicatif présent)```");
+        //     return;
+        // }
 
         console.log("Verbe : " + verbe);
 
@@ -327,14 +326,20 @@ client.on('message', message =>
                         let temps = o_verbe.mode[o_verbe.mode.length - 1].temps;
 
                         temps[temps.length - 1].valeur = tabConjugaison;
-
-
                     }
                 });
 
                 o_verbes.push(o_verbe);
 
-                console.log(o_verbes);
+
+                // for (let i = 0; i < o_verbe.mode.length / 4; i++)
+                // {
+                // indicatif uniquement pour l'instant
+                    message.channel.send("```json" + JSON.stringify(o_verbe.mode[0].temps, null, 2) + "```");
+                // }
+
+
+                console.log(JSON.stringify(o_verbes, null, 2));
 
             });
 
@@ -364,7 +369,7 @@ client.on('message', message =>
             },
             "fields": [
                 {
-                    "name": "nous ",
+                    "name": "nous suçâmes",
                     "value": "oui tres\nsexxxxxxx"
                 },
                 {
@@ -374,7 +379,7 @@ client.on('message', message =>
                 },
                 {
                     "name": "<:getdosched:675429413848088576>",
-                    "value": "du subjonctif ",
+                    "value": "couille du subjonctif bite",
                     "inline": true
                 },
                 {
@@ -472,14 +477,35 @@ client.on('message', message =>
                     "timestamp": message.createdAt
                 };
 
-                async function envoyer()
+
+                async function makeSynchronousRequest(request)
                 {
-                    await avgPriceItem(items, embed).then( () =>
+                    try
                     {
-                        console.log("J4ENVOIE LE MESSAGE");
-                        // message.channel.send({ embed })
-                    });
-                } envoyer().then();
+
+                        for (let i = 0; i < items.length; i++) {
+                            let httpPromise = avgPriceItemPromise(items[i], embed);
+                            let responseBody = await httpPromise;
+                        }
+
+                    }
+                    catch (e)
+                    {
+                        console.log(e);
+                    }
+                }
+
+                console.log("1");
+
+                (async function ()
+                {
+                    await makeSynchronousRequest();
+
+                    console.log("J4ENVOIE LE MESSAGE");
+                    message.channel.send({ embed })
+
+                })();
+
 
             });
 
@@ -491,14 +517,13 @@ client.on('message', message =>
     }
     else
     {
-        message.channel.send('apprent a écritre ')
+        message.channel.send('apprends à écritre sale piute')
     }
 
 });
 
 client.on("guildMemberSpeaking", (member, speaking) =>
 {
-    console.log("parle");
     if (FTGmode)
     {
         if (speaking)
@@ -513,7 +538,5 @@ client.on("guildMemberSpeaking", (member, speaking) =>
         }
     }
 });
-
-
 
 client.login(token);
