@@ -9,6 +9,8 @@ let {prefix, token} = config;
 const jsdom = require("jsdom");
 
 let FTGmode = 0;
+let ethMode = 0;
+let interval;
 
 let mainChannel;
 
@@ -509,6 +511,75 @@ client.on('message', message =>
         {
             console.log("Got error: " + e.message);
         });
+
+    }
+	else if (command === "eth")
+    {
+        if (args[1] == null) args[1] = 10;
+
+        if (ethMode)
+        {
+            clearInterval(interval);
+            ethMode = 0;
+            message.channel.send("j'arrete le check");
+        }
+        else
+        {
+            ethMode = 1;
+            message.channel.send("je vais vous dire si l'ETH passe en dessous de " + args[0] + " toutes les " + args[1] + " minutes.");
+            interval = setInterval( () =>
+            {
+                const optionsETH = {
+                    host: 'www.boursorama.com',
+                    path: '/bourse/devises/taux-de-change-ethereum-euro-ETH-EUR/'
+                };
+
+                https.get(optionsETH, function(res)
+                {
+                    console.log("Got response: " + res.statusCode);
+
+                    let html = "";
+
+                    res.on('data', (chunk) =>
+                    {
+                        html += chunk;
+                    });
+
+                    res.on('end', () =>
+                    {
+
+                        let htmlDebut = "<html><head><title>eth</title><meta charset='utf-8'></head><body>";
+                        let htmlFin = "</body></html>";
+
+                        let indexD = html.indexOf('<div class="c-faceplate__values">');
+                        let indexF = html.indexOf('<div class="c-faceplate__extra-info">') - 1;
+
+                        /* récupération de l'element div mw-parser-output qui contient toutes les infos
+                        *
+                        *  et création d'un element DOM à partir du code html récupéré
+                        *
+                        */
+                        let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
+                        let doc = htmlDOM.window.document;
+
+                        let price = doc.getElementsByClassName("c-instrument--last")[0].innerHTML;
+
+                        if (parseInt(price) < args[0])
+                        {
+                            // console.log("OMG L'ETH PASSE A " + price);
+                            message.channel.send("OMG L'ETH PASSE A " + price);
+                        }
+                        else
+                        {
+                            // console.log("non il est à " + price);
+                            message.channel.send("non il est à " + price);
+                        }
+                    });
+                });
+            }, args[1] * 60 * 1000);
+        }
+
+
 
     }
     else
