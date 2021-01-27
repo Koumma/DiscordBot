@@ -122,7 +122,7 @@ client.on('message', message =>
 
     if (command === "help")
     {
-        message.channel.send("prefix, send, join, leave, ftg, cj, r, salut");
+        message.channel.send("prefix, send, join, leave, ftg, cj, r, salut, eth");
     }
     else if (command === "prefix" && args.length === 0)
     {
@@ -427,83 +427,87 @@ client.on('message', message =>
             res.on('end', () =>
             {
 
-                let htmlDebut = "<html><head><title>relics</title><meta charset='utf-8'></head><body>";
-                let htmlFin = "</body></html>";
-
-                let indexD = html.indexOf('<div class="mw-parser-output">');
-                let indexF = html.indexOf('<div class="printfooter">') - 1;
-
-                /* récupération de l'element div mw-parser-output qui contient toutes les infos
-                *
-                *  et création d'un element DOM à partir du code html récupéré
-                *
-                */
-                let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
-                let doc = htmlDOM.window.document;
-
-                let table = doc.querySelector(".emodtable");
-
-                let trs = table.firstElementChild.childNodes;
-
-                let Nodes =
-                [
-                    trs[2],
-                    trs[4],
-                    trs[6],
-                    trs[8],
-                    trs[10],
-                    trs[12]
-                ]
-
-
-                Nodes.forEach( e =>
+                if (res.statusCode === 200)
                 {
-                    let item =
+                    let htmlDebut = "<html><head><title>relics</title><meta charset='utf-8'></head><body>";
+                    let htmlFin = "</body></html>";
+
+                    let indexD = html.indexOf('<div class="mw-parser-output">');
+                    let indexF = html.indexOf('<div class="printfooter">') - 1;
+
+                    /* récupération de l'element div mw-parser-output qui contient toutes les infos
+                    *
+                    *  et création d'un element DOM à partir du code html récupéré
+                    *
+                    */
+                    let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
+                    let doc = htmlDOM.window.document;
+
+                    let table = doc.querySelector(".emodtable");
+
+                    let trs = table.firstElementChild.childNodes;
+
+                    let Nodes =
+                        [
+                            trs[2],
+                            trs[4],
+                            trs[6],
+                            trs[8],
+                            trs[10],
+                            trs[12]
+                        ]
+
+
+                    Nodes.forEach( e =>
                     {
-                        name : e.firstElementChild.childNodes[2].innerHTML,
-                        ducats : e.childNodes[3].childNodes[3].innerHTML
-                    }
+                        let item =
+                            {
+                                name : e.firstElementChild.childNodes[2].innerHTML,
+                                ducats : e.childNodes[3].childNodes[3].innerHTML
+                            }
 
-                    //seule exception
-                    if (item.name !== "Forma Blueprint") items.push(item);
+                        //seule exception
+                        if (item.name !== "Forma Blueprint") items.push(item);
 
-                });
+                    });
 
-                let embed =
-                {
-                    "title": "voila les items de la relique",
-                    "description": "",
-                    "color": 7750623,
-                    "timestamp": message.createdAt
-                };
+                    let embed =
+                        {
+                            "title": "voila les items de la relique",
+                            "description": "",
+                            "color": 7750623,
+                            "timestamp": message.createdAt
+                        };
 
 
-                async function makeSynchronousRequest(request)
-                {
-                    try
+                    async function makeSynchronousRequest(request)
                     {
+                        try
+                        {
 
-                        for (let i = 0; i < items.length; i++) {
-                            let httpPromise = avgPriceItemPromise(items[i], embed);
-                            let responseBody = await httpPromise;
+                            for (let i = 0; i < items.length; i++) {
+                                let httpPromise = avgPriceItemPromise(items[i], embed);
+                                let responseBody = await httpPromise;
+                            }
+
                         }
-
+                        catch (e)
+                        {
+                            console.log(e);
+                        }
                     }
-                    catch (e)
+
+                    (async function ()
                     {
-                        console.log(e);
-                    }
+                        await makeSynchronousRequest();
+                        message.channel.send({ embed })
+
+                    })();
                 }
-
-                console.log("1");
-
-                (async function ()
+                else
                 {
-                    await makeSynchronousRequest();
-                    message.channel.send({ embed })
-
-                })();
-
+                    message.channel.send("votre relique n'est pas valide");
+                }
 
             });
 
@@ -515,8 +519,6 @@ client.on('message', message =>
     }
 	else if (command === "eth")
     {
-        if (args[1] == null) args[1] = 10;
-
         if (ethMode)
         {
             clearInterval(interval);
@@ -525,62 +527,69 @@ client.on('message', message =>
         }
         else
         {
-            ethMode = 1;
-            message.channel.send("je vais vous dire si l'ETH passe en dessous de " + args[0] + " toutes les " + args[1] + " minutes.");
-            interval = setInterval( () =>
+            if (args.length >= 1 && Number.isInteger(parseInt(args[0])))
             {
-                const optionsETH = {
-                    host: 'www.boursorama.com',
-                    path: '/bourse/devises/taux-de-change-ethereum-euro-ETH-EUR/'
-                };
-
-                https.get(optionsETH, function(res)
+                if (args[1] == null || !Number.isInteger(parseInt(args[1]))) args[1] = 10;
+                ethMode = 1;
+                message.channel.send("je vais vous dire si l'ETH passe en dessous de " + args[0] + " € toutes les " + args[1] + " minutes.");
+                interval = setInterval( () =>
                 {
-                    console.log("Got response: " + res.statusCode);
+                    const optionsETH = {
+                        host: 'www.boursorama.com',
+                        path: '/bourse/devises/taux-de-change-ethereum-euro-ETH-EUR/'
+                    };
 
-                    let html = "";
-
-                    res.on('data', (chunk) =>
+                    https.get(optionsETH, function(res)
                     {
-                        html += chunk;
-                    });
+                        console.log("Got response: " + res.statusCode);
 
-                    res.on('end', () =>
-                    {
+                        let html = "";
 
-                        let htmlDebut = "<html><head><title>eth</title><meta charset='utf-8'></head><body>";
-                        let htmlFin = "</body></html>";
-
-                        let indexD = html.indexOf('<div class="c-faceplate__values">');
-                        let indexF = html.indexOf('<div class="c-faceplate__extra-info">') - 1;
-
-                        /* récupération de l'element div mw-parser-output qui contient toutes les infos
-                        *
-                        *  et création d'un element DOM à partir du code html récupéré
-                        *
-                        */
-                        let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
-                        let doc = htmlDOM.window.document;
-
-                        let price = doc.getElementsByClassName("c-instrument--last")[0].innerHTML;
-
-                        if (parseInt(price) < args[0])
+                        res.on('data', (chunk) =>
                         {
-                            // console.log("OMG L'ETH PASSE A " + price);
-                            message.channel.send("OMG L'ETH PASSE A " + price);
-                        }
-                        else
+                            html += chunk;
+                        });
+
+                        res.on('end', () =>
                         {
-                            // console.log("non il est à " + price);
-                            message.channel.send("non il est à " + price);
-                        }
+
+                            let htmlDebut = "<html><head><title>eth</title><meta charset='utf-8'></head><body>";
+                            let htmlFin = "</body></html>";
+
+                            let indexD = html.indexOf('<div class="c-faceplate__values">');
+                            let indexF = html.indexOf('<div class="c-faceplate__extra-info">') - 1;
+
+                            /* récupération de l'element div mw-parser-output qui contient toutes les infos
+                            *
+                            *  et création d'un element DOM à partir du code html récupéré
+                            *
+                            */
+                            let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
+                            let doc = htmlDOM.window.document;
+
+                            let price = doc.getElementsByClassName("c-instrument--last")[0].innerHTML;
+
+                            price = price.replace(" ", "");
+
+                            if (parseInt(price) < args[0])
+                            {
+                                // console.log("OMG L'ETH PASSE A " + price);
+                                message.channel.send("OMG L'ETH PASSE A " + price + " € <@253212507085340672> <@290215560397193227>");
+                            }
+                            else
+                            {
+                                // console.log("non il est à " + price);
+                                message.channel.send("non il est à " + price + " €");
+                            }
+                        });
                     });
-                });
-            }, args[1] * 60 * 1000);
+                }, args[1] * 60 * 1000);
+            }
+            else
+            {
+                message.channel.send("faut donner un prix en euros et éventuellement un interval");
+            }
         }
-
-
-
     }
     else
     {
