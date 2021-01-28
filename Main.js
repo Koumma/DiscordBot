@@ -1,10 +1,9 @@
-const {Client, MessageAttachment} = require('discord.js');
+const {Client} = require('discord.js');
 const client = new Client();
 const fileName = './config.json'
 const config = require(fileName);
 const fs = require('fs');
 const https = require('https');
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 let {prefix, token} = config;
 const jsdom = require("jsdom");
 
@@ -68,6 +67,13 @@ function avgPriceItemPromise(item, embed)
 
                 let response = JSON.parse(html);
 
+                /**
+                 * @property {string} payload
+                 * @property {string} statistics_closed
+                 * @property {string} avg_price
+                 *
+                 * API variables
+                 */
                 avgPrice = response.payload.statistics_closed["48hours"][0].avg_price;
                 console.log(avgPrice);
 
@@ -87,7 +93,6 @@ function avgPriceItemPromise(item, embed)
 
 }
 
-
 client.on('ready', () =>
 {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -96,29 +101,32 @@ client.on('ready', () =>
 
 });
 
-
 client.on('message', message =>
 {
-    if (message.channel.type === "dm" && !message.author.bot) mainChannel.send(message.author.username + " : " + message.content);
+    if (message.author.bot) return;
 
-    firstTagged = message.mentions.users.first();
+    if (message.channel.type === "dm") mainChannel.send(message.author.username + " : " + message.content);
 
-    checkPrefix = message.content.startsWith(prefix);
+    let firstTagged = message.mentions.users.first();
 
-    if ((!(client.user.id === firstTagged) && !checkPrefix) || message.author.bot) return;
+    let checkPrefix = message.content.startsWith(prefix);
 
-    args = null;
+    let args = null;
 
     if (checkPrefix)
     {
         args = message.content.slice(prefix.length).split(' ');
     }
-    else
+    else if (firstTagged !== undefined && client.user.id === firstTagged.id)
     {
         args = message.content.slice(message.mentions.users.first().id.length + 5).split(' ');
     }
+    else
+    {
+        return;
+    }
 
-    command = args.shift().toLowerCase();
+    let command = args.shift().toLowerCase();
 
     if (command === "help")
     {
@@ -132,7 +140,7 @@ client.on('message', message =>
     {
         config.prefix = args[0];
 
-        configData = JSON.stringify(config);
+        let configData = JSON.stringify(config);
 
         prefix = args[0];
 
@@ -143,25 +151,35 @@ client.on('message', message =>
     else if (command === "send")
     {
         args.shift();
-        client.users.cache.get(firstTagged.id).send(args.join(' '));
+        client.users.cache.get(firstTagged.id).send(args.join(' ')).then( () =>
+        {
+            console.log("Message envoyé :D");
+        });
     }
     else if (command === "leave")
     {
-        channel = message.guild.voice.channel;
-        channel.leave();
-        message.channel.send("j'ai quitté " + channel.name);
+        if (!message.guild.voice || !message.guild.voice.channel) message.channel.send("t'abuses mec faut que je sois dans un salon si tu veux que je le quitte");
+        else
+        {
+            let channel = message.guild.voice.channel;
+            channel.leave();
+            message.channel.send("j'ai quitté " + channel.name);
+        }
 
     }
     else if (command === "join")
     {
         mainChannel = message.channel;
-        channel = message.member.voice.channel;
+        let channel = message.member.voice.channel;
+
 
         if (!channel) message.channel.send("t'abuses mec faut être dans un salon si tu veux que je le rejoigne");
         else
         {
-            channel.join();
-            message.channel.send("rejoind  " + channel.name);
+            channel.join().then( () =>
+            {
+                message.channel.send("rejoind  " + channel.name);
+            });
         }
 
     }
@@ -173,11 +191,11 @@ client.on('message', message =>
     }
     else if (command === "conjugaison" || command === "cj")
     {
-        let modeAffichage = "";
-        let tempsAffichage = "";
-        const modesVerbaux = ["indicatif", "conditionnel", "subjonctif", "imperatif", "infinitif", "participe", "gerondif"];
-        const tempsVerbaux = ["present", "passe compose", "imparfait", "plus-que-parfait", "passe simple", "passe anterieur",
-            "futur simple", "futur anterieur", "passe"];
+        // let modeAffichage = "";
+        // let tempsAffichage = "";
+        // const modesVerbaux = ["indicatif", "conditionnel", "subjonctif", "imperatif", "infinitif", "participe", "gerondif"];
+        // const tempsVerbaux = ["present", "passe compose", "imparfait", "plus-que-parfait", "passe simple", "passe anterieur",
+        //     "futur simple", "futur anterieur", "passe"];
 
 
         let verbe = args[0];
@@ -209,11 +227,11 @@ client.on('message', message =>
 
         console.log("Verbe : " + verbe);
 
-        var options =
-        {
-            host: 'la-conjugaison.nouvelobs.com',
-            path: '/du/verbe/' + verbe + '.php'
-        };
+        const options =
+            {
+                host: 'la-conjugaison.nouvelobs.com',
+                path: '/du/verbe/' + verbe + '.php'
+            };
 
         https.get(options, function(res)
         {
@@ -227,119 +245,126 @@ client.on('message', message =>
 
             res.on('end', () => {
 
-                html = html.replace(/ +(?= )/g, '');
-
-                let htmlDebut = "<html><head><title>test</title><meta charset='utf-8'></head><body>";
-                let htmlFin = "</body></html>";
-
-                let indexD = html.indexOf('<div id="gauche">');
-                let indexF = html.indexOf('<div id="droite">') - 1;
-
-                /* récupération de l'element div gauche qui contient toutes les infos
-                *
-                *  et création d'un element DOM à partir du code html récupéré
-                *
-                */
-                let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
-                let doc = htmlDOM.window.document;
-
-
-                let all = doc.getElementsByTagName("*");
-
-                /* nettoyage de tous les éléments indesirables */
-                [...all].forEach((node) =>
+                if (res.statusCode === 200)
                 {
-                    if (node.nodeName === "IMG" || node.className === "spacer" || node.id === "dfp-inread"
-                        || node.nodeName === "A" || node.nodeName === "UL" || node.className === "OUTBRAIN")
+                    html = html.replace(/ +(?= )/g, '');
+
+                    let htmlDebut = "<html lang='fr'><head><title>test</title><meta charset='utf-8'></head><body>";
+                    let htmlFin = "</body></html>";
+
+                    let indexD = html.indexOf('<div id="gauche">');
+                    let indexF = html.indexOf('<div id="droite">') - 1;
+
+                    /* récupération de l'element div gauche qui contient toutes les infos
+                    *
+                    *  et création d'un element DOM à partir du code html récupéré
+                    *
+                    */
+                    let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
+                    let doc = htmlDOM.window.document;
+
+
+                    let all = doc.getElementsByTagName("*");
+
+                    /* nettoyage de tous les éléments indesirables */
+                    [...all].forEach((node) =>
                     {
-                        node.parentNode.removeChild(node);
-                    }
-                });
+                        if (node.nodeName === "IMG" || node.className === "spacer" || node.id === "dfp-inread"
+                            || node.nodeName === "A" || node.nodeName === "UL" || node.className === "OUTBRAIN")
+                        {
+                            node.parentNode.removeChild(node);
+                        }
+                    });
 
-                let allChilds = doc.getElementById("contenu").childNodes;
+                    let allChilds = doc.getElementById("contenu").childNodes;
 
-                /* nettoyage de tous les elements inutiles fils du div (contenu) */
-                allChilds.forEach((node) =>
-                {
-                    if (node.className !== "mode" && node.className !== "tempstab" && node.id !== "gauche" && node.id !== "contenu"
+                    /* nettoyage de tous les elements inutiles fils du div (contenu) */
+                    allChilds.forEach((node) =>
+                    {
+                        if (node.className !== "mode" && node.className !== "tempstab" && node.id !== "gauche" && node.id !== "contenu"
                             && node.nodeName !== "HTML" && node.nodeName !== "HEAD" && node.nodeName !== "TITLE"
                             && node.nodeName !== "META" && node.nodeName !== "BODY")
-                    {
-                        node.parentNode.removeChild(node);
-                    }
-                });
-
-                let o_verbes = [];
-
-                /* on boucle sur tous les elements et on rempli les tableaux */
-                let res = doc.getElementsByTagName("*");
-                let currentMode = "";
-                let currentTemps = "";
-
-                let o_verbe =
-                {
-                    nom : verbe,
-                    mode : []
-                };
-
-                [...res].forEach((node) =>
-                {
-                    if (node.nodeName === "H2" && node.className === "mode")
-                    {
-                        currentMode = normalize(node.firstChild.innerHTML);
-                        console.log(currentMode);
-
-                        let o_mode =
                         {
-                            nom : currentMode,
-                            temps : []
+                            node.parentNode.removeChild(node);
+                        }
+                    });
+
+                    let o_verbes = [];
+
+                    /* on boucle sur tous les elements et on rempli les tableaux */
+                    let res = doc.getElementsByTagName("*");
+                    let currentMode = "";
+                    let currentTemps = "";
+
+                    let o_verbe =
+                        {
+                            nom : verbe,
+                            mode : []
                         };
 
-                        o_verbe.mode.push(o_mode);
-
-                    }
-                    if (node.nodeName === "DIV" && node.className === "tempstab")
+                    [...res].forEach((node) =>
                     {
-                        currentTemps = normalize(node.firstChild.innerHTML);
-                        console.log(currentTemps);
-
-                        let o_temps =
+                        if (node.nodeName === "H2" && node.className === "mode")
                         {
-                            nom : currentTemps,
-                            valeur : null
-                        };
+                            currentMode = normalize(node.firstChild.innerHTML);
+                            console.log(currentMode);
 
-                        o_verbe.mode[o_verbe.mode.length - 1].temps.push(o_temps);
+                            let o_mode =
+                                {
+                                    nom : currentMode,
+                                    temps : []
+                                };
 
-                    }
-                    if (node.nodeName === "DIV" && node.className === "tempscorps")
-                    {
-                        let corps = node.innerHTML.replace(/<b>/g, "")
-                        .replace(new RegExp("</b>", "g"), "");
+                            o_verbe.mode.push(o_mode);
 
-                        let tabConjugaison = corps.split("<br>");
+                        }
+                        if (node.nodeName === "DIV" && node.className === "tempstab")
+                        {
+                            currentTemps = normalize(node.firstChild.innerHTML);
+                            console.log(currentTemps);
 
-                        tabConjugaison = tabConjugaison.filter((e) => e !== "" && e !== "&nbsp;");
+                            let o_temps =
+                                {
+                                    nom : currentTemps,
+                                    valeur : null
+                                };
 
-                        console.log(tabConjugaison);
+                            o_verbe.mode[o_verbe.mode.length - 1].temps.push(o_temps);
 
-                        let temps = o_verbe.mode[o_verbe.mode.length - 1].temps;
+                        }
+                        if (node.nodeName === "DIV" && node.className === "tempscorps")
+                        {
+                            let corps = node.innerHTML.replace(/<b>/g, "")
+                                .replace(new RegExp("</b>", "g"), "");
 
-                        temps[temps.length - 1].valeur = tabConjugaison;
-                    }
-                });
+                            let tabConjugaison = corps.split("<br>");
 
-                o_verbes.push(o_verbe);
+                            tabConjugaison = tabConjugaison.filter((e) => e !== "" && e !== "&nbsp;");
+
+                            console.log(tabConjugaison);
+
+                            let temps = o_verbe.mode[o_verbe.mode.length - 1].temps;
+
+                            temps[temps.length - 1].valeur = tabConjugaison;
+                        }
+                    });
+
+                    o_verbes.push(o_verbe);
 
 
-                // for (let i = 0; i < o_verbe.mode.length / 4; i++)
-                // {
-                // indicatif uniquement pour l'instant
+                    // for (let i = 0; i < o_verbe.mode.length / 4; i++)
+                    // {
+                    // indicatif uniquement pour l'instant
                     message.channel.send("```json" + JSON.stringify(o_verbe.mode[0].temps, null, 2) + "```");
-                // }
+                    // }
 
 
-                console.log(JSON.stringify(o_verbes, null, 2));
+                    console.log(JSON.stringify(o_verbes, null, 2));
+                }
+                else
+                {
+                    message.channel.send("je n'ai pas réussi à trouver votre verbe");
+                }
 
             });
 
@@ -393,7 +418,6 @@ client.on('message', message =>
     }
     else if (command === "relic" || command === "r")
     {
-
         let relic = "";
 
         if (args.length === 1) relic = args[0];
@@ -415,7 +439,7 @@ client.on('message', message =>
 
         https.get(optionsRelic, function(res)
         {
-            console.log("Got response: " + res.statusCode);
+            console.log("WF : Got response: " + res.statusCode);
 
             let html = "";
 
@@ -429,7 +453,7 @@ client.on('message', message =>
 
                 if (res.statusCode === 200)
                 {
-                    let htmlDebut = "<html><head><title>relics</title><meta charset='utf-8'></head><body>";
+                    let htmlDebut = "<html lang='fr'><head><title>relics</title><meta charset='utf-8'></head><body>";
                     let htmlFin = "</body></html>";
 
                     let indexD = html.indexOf('<div class="mw-parser-output">');
@@ -480,14 +504,14 @@ client.on('message', message =>
                         };
 
 
-                    async function makeSynchronousRequest(request)
+                    async function makeSynchronousRequest()
                     {
                         try
                         {
 
                             for (let i = 0; i < items.length; i++) {
                                 let httpPromise = avgPriceItemPromise(items[i], embed);
-                                let responseBody = await httpPromise;
+                                await httpPromise;
                             }
 
                         }
@@ -517,7 +541,7 @@ client.on('message', message =>
         });
 
     }
-	else if (command === "eth")
+    else if (command === "eth")
     {
         if (ethMode)
         {
@@ -527,21 +551,23 @@ client.on('message', message =>
         }
         else
         {
-            if (args.length >= 1 && Number.isInteger(parseInt(args[0])))
+            if (args.length >= 1 && Number.isInteger(parseInt(args[0])) && parseInt(args[0]) > 1)
             {
-                if (args[1] == null || !Number.isInteger(parseInt(args[1]))) args[1] = 10;
+                if (args[1] == null || !Number.isFinite(parseFloat(args[1])) || parseFloat(args[1]) < 0.05 || isNaN(parseFloat(args[1]))) args[1] = 10;
                 ethMode = 1;
-                message.channel.send("je vais vous dire si l'ETH passe en dessous de " + args[0] + " € toutes les " + args[1] + " minutes.");
+                message.channel.send("je vais vous dire si l'ETH passe en dessous de " + args[0] + " $ toutes les " + parseFloat(args[1]) + " minutes.");
+
+
                 interval = setInterval( () =>
                 {
                     const optionsETH = {
                         host: 'www.boursorama.com',
-                        path: '/bourse/devises/taux-de-change-ethereum-euro-ETH-EUR/'
+                        path: '/bourse/devises/taux-de-change-ethereum-dollar-ETH-USD/'
                     };
 
                     https.get(optionsETH, function(res)
                     {
-                        console.log("Got response: " + res.statusCode);
+                        console.log("ETH : Got response: " + res.statusCode);
 
                         let html = "";
 
@@ -553,7 +579,7 @@ client.on('message', message =>
                         res.on('end', () =>
                         {
 
-                            let htmlDebut = "<html><head><title>eth</title><meta charset='utf-8'></head><body>";
+                            let htmlDebut = "<html lang='fr'><head><title>eth</title><meta charset='utf-8'></head><body>";
                             let htmlFin = "</body></html>";
 
                             let indexD = html.indexOf('<div class="c-faceplate__values">');
@@ -571,23 +597,33 @@ client.on('message', message =>
 
                             price = price.replace(" ", "");
 
+
                             if (parseInt(price) < args[0])
                             {
+                                let mentions = "";
+                                if (args.length >= 3)
+                                {
+                                    message.mentions.members.forEach( mention =>
+                                    {
+                                        mentions += " <@" + mention.id + ">";
+                                    });
+                                }
+
                                 // console.log("OMG L'ETH PASSE A " + price);
-                                message.channel.send("OMG L'ETH PASSE A " + price + " € <@253212507085340672> <@290215560397193227>");
+                                message.channel.send("OMG L'ETH PASSE A " + (parseInt(price)) + " $" + mentions);
                             }
                             else
                             {
                                 // console.log("non il est à " + price);
-                                message.channel.send("non il est à " + price + " €");
+                                message.channel.send("non il est à " + (parseInt(price)) + " $");
                             }
                         });
                     });
-                }, args[1] * 60 * 1000);
+                }, parseFloat(args[1]) * 60 * 1000);
             }
             else
             {
-                message.channel.send("faut donner un prix en euros et éventuellement un interval");
+                message.channel.send("faut donner un prix en dollars et éventuellement un interval");
             }
         }
     }
@@ -605,8 +641,10 @@ client.on("guildMemberSpeaking", (member, speaking) =>
         if (speaking)
         {
             if (mainChannel != null) mainChannel.send("stop parler " + member.displayName);
-            member.voice.kick("arrete de parler");
-            console.log(member.displayName + " parle la attention");
+            member.voice.kick("arrete de parler").then( () =>
+            {
+                console.log(member.displayName + " parle la attention");
+            });
         }
         else
         {
@@ -615,4 +653,7 @@ client.on("guildMemberSpeaking", (member, speaking) =>
     }
 });
 
-client.login(token);
+client.login(token).then( () =>
+{
+    console.log("Connexion en cours...");
+});
