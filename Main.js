@@ -593,7 +593,7 @@ client.on('message', message =>
                             let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
                             let doc = htmlDOM.window.document;
 
-                            let price = doc.querySelector(".entry-content").childNodes[3].childNodes[3].firstChild.innerHTML.slice(1)
+                            let price = doc.querySelector(".entry-content").childNodes[3].childNodes[3].firstChild.innerHTML.slice(1);
 
 
                             if (parseInt(price) < args[0])
