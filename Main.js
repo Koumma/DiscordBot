@@ -561,8 +561,8 @@ client.on('message', message =>
                 interval = setInterval( () =>
                 {
                     const optionsETH = {
-                        host: 'www.boursorama.com',
-                        path: '/bourse/devises/taux-de-change-ethereum-dollar-ETH-USD/'
+                        host: 'cryptonaute.fr',
+                        path: '/crypto-monnaie/ethereum/'
                     };
 
                     https.get(optionsETH, function(res)
@@ -593,9 +593,7 @@ client.on('message', message =>
                             let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
                             let doc = htmlDOM.window.document;
 
-                            let price = doc.getElementsByClassName("c-instrument--last")[0].innerHTML;
-
-                            price = price.replace(" ", "");
+                            let price = document.querySelector(".entry-content").childNodes[3].childNodes[3].innerText.slice(1)
 
 
                             if (parseInt(price) < args[0])
