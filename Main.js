@@ -582,8 +582,8 @@ client.on('message', message =>
                             let htmlDebut = "<html lang='fr'><head><title>eth</title><meta charset='utf-8'></head><body>";
                             let htmlFin = "</body></html>";
 
-                            let indexD = html.indexOf('<div class="c-faceplate__values">');
-                            let indexF = html.indexOf('<div class="c-faceplate__extra-info">') - 1;
+                            let indexD = html.indexOf('<div class="entry-content typography-copy">');
+                            let indexF = html.indexOf('<div class="comments-section single-entry-section">') - 1;
 
                             /* récupération de l'element div mw-parser-output qui contient toutes les infos
                             *
@@ -593,7 +593,7 @@ client.on('message', message =>
                             let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
                             let doc = htmlDOM.window.document;
 
-                            let price = document.querySelector(".entry-content").childNodes[3].childNodes[3].innerText.slice(1)
+                            let price = doc.querySelector(".entry-content").childNodes[3].childNodes[3].firstChild.innerHTML.slice(1)
 
 
                             if (parseInt(price) < args[0])
