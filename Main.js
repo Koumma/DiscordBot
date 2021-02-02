@@ -603,12 +603,12 @@ client.on('message', message =>
                                 }
 
                                 // console.log("OMG L'ETH PASSE A " + price);
-                                message.channel.send("OMG L'ETH PASSE A " + (parseInt(price)) + " $" + mentions);
+                                message.channel.send("OMG L'ETH PASSE A " + (parseInt(price)+30) + " $" + mentions);
                             }
                             else
                             {
                                 // console.log("non il est à " + price);
-                                message.channel.send("non il est à " + (parseInt(price)) + " $");
+                                message.channel.send("non il est à " + (parseInt(price)+30) + " $");
                             }
                         });
                     });
