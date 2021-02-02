@@ -561,8 +561,8 @@ client.on('message', message =>
                 interval = setInterval( () =>
                 {
                     const optionsETH = {
-                        host: 'cryptonaute.fr',
-                        path: '/crypto-monnaie/ethereum/'
+                        host: 'api.coingecko.com',
+                        path: '/api/v3/coins/ethereum'
                     };
 
                     https.get(optionsETH, function(res)
@@ -578,23 +578,18 @@ client.on('message', message =>
 
                         res.on('end', () =>
                         {
+                            console.log("GET api.coingecko.com/api/v3/coins/ethereum --- GOT " + res.statusCode);
 
-                            let htmlDebut = "<html lang='fr'><head><title>eth</title><meta charset='utf-8'></head><body>";
-                            let htmlFin = "</body></html>";
+                            let response = JSON.parse(html);
 
-                            let indexD = html.indexOf('<div class="entry-content typography-copy">');
-                            let indexF = html.indexOf('<div class="comments-section single-entry-section">') - 1;
-
-                            /* récupération de l'element div mw-parser-output qui contient toutes les infos
-                            *
-                            *  et création d'un element DOM à partir du code html récupéré
-                            *
-                            */
-                            let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
-                            let doc = htmlDOM.window.document;
-
-                            let price = doc.querySelector(".entry-content").childNodes[3].childNodes[3].firstChild.innerHTML.slice(1);
-
+                            /**
+                             * @property {string} market_data
+                             * @property {string} current_price
+                             * @property {string} usd
+                             *
+                             * API variables
+                             */
+                            let price = response.market_data.current_price.usd;
 
                             if (parseInt(price) < args[0])
                             {
