@@ -1,4 +1,4 @@
-*.json
+*lock.json
 node_modules/
 *.html
 .idea/
