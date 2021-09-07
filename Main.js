@@ -1,5 +1,8 @@
-const {Client} = require('discord.js');
-const client = new Client();
+const { Client, Intents, MessageEmbed, MessageAttachment } = require('discord.js');
+const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES", "DIRECT_MESSAGES"], partials: ["CHANNEL"] });
+//const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+//const {Client} = require('discord.js');
+//const client = new Client();
 const fileName = './config.json'
 const config = require(fileName);
 const fs = require('fs');
@@ -101,7 +104,7 @@ client.on('ready', () =>
 
 });
 
-client.on('message', message =>
+client.on('messageCreate', message =>
 {
     if (message.author.bot) return;
 
@@ -376,8 +379,39 @@ client.on('message', message =>
     else if (command === "salut")
     {
         let author = message.author;
+        const salutEmbed = new MessageEmbed()
+            .setTitle("salut")
+            .setDescription("je\n[clique ici stp c'est vraiment cool :D](http://perso.numericable.fr/cansell.dominique/exodc.pdf)")
+            .setColor(3208301)
+            .setThumbnail(author.avatarURL())
+            .setTimestamp(message.createdAt)
+            .setFooter("pied texte")
+            .setAuthor(author.username,author.avatarURL())
+            .addFields(
+                {
+                    "name": "nous",
+                    "value": "oui tres\nsexxxxxxx"
+                },
+                {
+                    "name": "<:getdosched:675429413848088576>",
+                    "value": "présent de l'indicatif",
+                    "inline": true
+                },
+                {
+                    "name": "<:getdosched:675429413848088576>",
+                    "value": " du  ",
+                    "inline": true
+                },
+                {
+                    "name": "<:getdosched:675429413848088576>",
+                    "value": "je suis soos",
+                    "inline": true
+                }
+            )
+        message.channel.send({ embeds: [salutEmbed] });
 
-        let embed = {
+
+        /*let embed = {
             "title": "salut",
             "description": "je\n[clique ici stp c'est vraiment cool :D](http://perso.numericable.fr/cansell.dominique/exodc.pdf)",
             "color": 3208301,
@@ -414,7 +448,7 @@ client.on('message', message =>
                 }
             ]
         };
-        message.channel.send({ embed });
+        message.channel.send({ embed });*/
     }
     else if (command === "relic" || command === "r")
     {
@@ -495,13 +529,11 @@ client.on('message', message =>
 
                     });
 
-                    let embed =
-                        {
-                            "title": "voila les items de la relique",
-                            "description": "",
-                            "color": 7750623,
-                            "timestamp": message.createdAt
-                        };
+                    const rEmbed = new MessageEmbed()
+                        .setTitle("voila les items de la relique")
+                        .setDescription("")
+                        .setColor(7750623)
+                        .setTimestamp(message.createdAt)
 
 
                     async function makeSynchronousRequest()
@@ -510,7 +542,7 @@ client.on('message', message =>
                         {
 
                             for (let i = 0; i < items.length; i++) {
-                                let httpPromise = avgPriceItemPromise(items[i], embed);
+                                let httpPromise = avgPriceItemPromise(items[i], rEmbed);
                                 await httpPromise;
                             }
 
@@ -524,7 +556,7 @@ client.on('message', message =>
                     (async function ()
                     {
                         await makeSynchronousRequest();
-                        message.channel.send({ embed })
+                        message.channel.send({ embeds: [rEmbed] })
 
                     })();
                 }
