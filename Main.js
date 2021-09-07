@@ -1,8 +1,5 @@
 const { Client, Intents, MessageEmbed, MessageAttachment } = require('discord.js');
 const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES", "DIRECT_MESSAGES"], partials: ["CHANNEL"] });
-//const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
-//const {Client} = require('discord.js');
-//const client = new Client();
 const fileName = './config.json'
 const config = require(fileName);
 const fs = require('fs');
@@ -77,13 +74,24 @@ function avgPriceItemPromise(item, embed)
                  *
                  * API variables
                  */
-                avgPrice = response.payload.statistics_closed["48hours"][0].avg_price;
-                console.log(avgPrice);
+                try
+                {
+                    avgPrice = response.payload.statistics_closed["48hours"][0].avg_price;
 
-                embed.description += "[" + item.name + "](https://warframe.market/items/" +
-                    item.name.replace(/ /g, '_').toLowerCase() + ") Ducats : " + item.ducats + " ducats " +
-                    "Prix : " + avgPrice + " pl\n";
-                resolve(embed);
+                    console.log(avgPrice);
+
+                    embed.description += "[" + item.name + "](https://warframe.market/items/" +
+                        item.name.replace(/ /g, '_').toLowerCase() + ") Ducats : " + item.ducats + " ducats " +
+                        "Prix : " + avgPrice + " pl\n";
+                    resolve(embed);
+                }
+                catch (error) {
+                    embed.description += "[" + item.name + "](https://warframe.market/items/" +
+                        item.name.replace(/ /g, '_').toLowerCase() + ")" +
+                        " Impossible de récupérer le prix moyen de cet item\n";
+                    resolve(embed);
+                }
+
             });
         }).on('error', function (e) {
             console.log("Got error: " + e.message);
@@ -409,46 +417,6 @@ client.on('messageCreate', message =>
                 }
             )
         message.channel.send({ embeds: [salutEmbed] });
-
-
-        /*let embed = {
-            "title": "salut",
-            "description": "je\n[clique ici stp c'est vraiment cool :D](http://perso.numericable.fr/cansell.dominique/exodc.pdf)",
-            "color": 3208301,
-            "thumbnail": {
-                "url": author.avatarURL()
-            },
-            "timestamp": message.createdAt,
-            "footer": {
-                "text": "pied texte"
-            },
-            "author": {
-                "name": author.username,
-                "icon_url": author.avatarURL()
-            },
-            "fields": [
-                {
-                    "name": "nous",
-                    "value": "oui tres\nsexxxxxxx"
-                },
-                {
-                    "name": "<:getdosched:675429413848088576>",
-                    "value": "présent de l'indicatif",
-                    "inline": true
-                },
-                {
-                    "name": "<:getdosched:675429413848088576>",
-                    "value": " du  ",
-                    "inline": true
-                },
-                {
-                    "name": "<:getdosched:675429413848088576>",
-                    "value": "je suis soos",
-                    "inline": true
-                }
-            ]
-        };
-        message.channel.send({ embed });*/
     }
     else if (command === "relic" || command === "r")
     {
@@ -491,7 +459,7 @@ client.on('messageCreate', message =>
                     let htmlFin = "</body></html>";
 
                     let indexD = html.indexOf('<div class="mw-parser-output">');
-                    let indexF = html.indexOf('<div class="printfooter">') - 1;
+                    let indexF = html.indexOf('<div class="page-footer">') - 1;
 
                     /* récupération de l'element div mw-parser-output qui contient toutes les infos
                     *
@@ -501,7 +469,7 @@ client.on('messageCreate', message =>
                     let htmlDOM = new jsdom.JSDOM(htmlDebut + html.substring(indexD, indexF) + htmlFin);
                     let doc = htmlDOM.window.document;
 
-                    let table = doc.querySelector(".emodtable");
+                    let table = doc.querySelector(".wikitable");
 
                     let trs = table.firstElementChild.childNodes;
 
@@ -510,9 +478,9 @@ client.on('messageCreate', message =>
                             trs[2],
                             trs[4],
                             trs[6],
-                            trs[8],
                             trs[10],
-                            trs[12]
+                            trs[12],
+                            trs[16]
                         ]
 
 
@@ -521,7 +489,7 @@ client.on('messageCreate', message =>
                         let item =
                             {
                                 name : e.firstElementChild.childNodes[2].innerHTML,
-                                ducats : e.childNodes[3].childNodes[3].innerHTML
+                                ducats : e.childNodes[3].firstElementChild.childNodes[1].childNodes[1].textContent
                             }
 
                         //seule exception
