@@ -2,14 +2,17 @@
   "name": "bot-koumma",
   "version": "1.0.0",
   "description": "Multifunction bot Discord",
-  "main": "Main.js",
+  "main": "Maine.js",
   "dependencies": {
+    "@discordjs/builders": "^0.6.0",
+    "discord-client-api": "^1.0.4",
     "discord.js": "^13.1.0",
+    "fs": "^0.0.1-security",
     "jsdom": "^17.0.0",
     "xmlhttprequest": "^1.8.0"
   },
   "scripts": {
-    "start": "node Main.js"
+    "start": "node index.js"
   },
   "engines": {
     "node": ">= 16.6.0"
@@ -23,5 +26,11 @@
   "bugs": {
     "url": "https://github.com/Koumma/DiscordBot/issues"
   },
-  "homepage": "https://github.com/Koumma/DiscordBot#readme"
+  "homepage": "https://github.com/Koumma/DiscordBot#readme",
+  "devDependencies": {
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "conjugation-fr": "^0.3.1",
+    "discord-api-types": "^0.23.1",
+    "mysql": "^2.18.1"
+  }
 }
