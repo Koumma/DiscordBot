@@ -30,17 +30,17 @@ module.exports = new Command({
                     "value": "oui tres\nsexxxxxxx"
                 },
                 {
-                    "name": "<:get_dosched:887661696049618956>",
+                    "name": "<:getdosched:675429413848088576>",
                     "value": "présent de l'indicatif",
                     "inline": true
                 },
                 {
-                    "name": "<:get_dosched:887661696049618956>",
+                    "name": "<:getdosched:675429413848088576>",
                     "value": " du  ",
                     "inline": true
                 },
                 {
-                    "name": "<:get_dosched:887661696049618956>",
+                    "name": "<:getdosched:675429413848088576>",
                     "value": "je suis soos",
                     "inline": true
                 }
