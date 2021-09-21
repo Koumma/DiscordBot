@@ -1,5 +1,18 @@
 # DiscordBot
 
+Pour lancer le bot dans un container docker, il faut exécuter les commandes suivantes :
+
+- docker build --rm -t jonathanpog .
+- docker run -dit --restart always --name jonathanpog jonathanpog:latest
+
+
+Pour lancer le bot sans le container, il faut se rendre dans le repertoire bot/app puis exécuter les commandes suivantes : 
+
+- npm ci
+- node index.js
+
+
+
 Patch note JonathanPog 0.5 :
 
 - ajout commande eth :

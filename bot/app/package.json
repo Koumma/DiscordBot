@@ -1,8 +1,8 @@
 {
   "name": "bot-koumma",
-  "version": "1.0.0",
+  "version": "2.0",
   "description": "Multifunction bot Discord",
-  "main": "Maine.js",
+  "main": "index.js",
   "dependencies": {
     "@discordjs/builders": "^0.6.0",
     "discord-client-api": "^1.0.4",
