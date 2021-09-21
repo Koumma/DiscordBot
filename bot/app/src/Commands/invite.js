@@ -12,7 +12,7 @@ module.exports = new Command({
     slashCommandOptions: [],
     permission: "SEND_MESSAGES",
     async run(message, args, client) {
-        const inviteLink = "https://discord.com/api/oauth2/authorize?client_id=801484739784998912&permissions=8&scope=bot"
+        const inviteLink = "https://discord.com/api/oauth2/authorize?client_id=741654495783550986&permissions=8&scope=bot"
 
         const button = new MessageButton()
             .setLabel('Invite Me')
