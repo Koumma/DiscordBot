@@ -139,14 +139,19 @@ async function getTemps(message, verb, fgender) {
             for(j = 0; j < tempsVerbaux[i].length; j++) {
 
                 let conjugaison = "";
-                let tabConjug = beschrelle.conjugate(verb, modeVerbaux[i], tempsVerbaux[i][j], fgender);
+                let tabConjug;
+                try {
+                    tabConjug = beschrelle.conjugate(verb, modeVerbaux[i], tempsVerbaux[i][j], fgender);
 
-                tabConjug.forEach(line => {
-                    if (line.pronoun === "i") conjugaison += `${line.verb}\n`;
-                    else if (line.pronoun !== "j'") conjugaison += `${line.pronoun} ${line.verb}\n`;
-                    else conjugaison += `${line.pronoun}${line.verb}\n`;
-                });
-                tempsConjuge.push({t:tempsVerbauxFR[i][j], c:conjugaison});
+                    tabConjug.forEach(line => {
+                        if (line.pronoun === "i") conjugaison += `${line.verb}\n`;
+                        else if (line.pronoun !== "j'") conjugaison += `${line.pronoun} ${line.verb}\n`;
+                        else conjugaison += `${line.pronoun}${line.verb}\n`;
+                    });
+                    await tempsConjuge.push({t:tempsVerbauxFR[i][j], c:conjugaison});
+                }catch (error) {
+                    console.log(error);
+                }
             }
 
 
