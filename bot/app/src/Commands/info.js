@@ -15,8 +15,6 @@ module.exports = new Command({
     async run(message, args, client) {
 
         let {uptime} = await getUptime();      //let {stdout} = await getVersion();
-        console.log(uptime);
-
 
         let embed = new MessageEmbed();
 
@@ -68,7 +66,6 @@ async function getUptime() {
             if (parseInt(v) <= 1) time[i] = time[i].slice(0, -1);
             uptime += `${tab[i]} ${time[i]} `
         });
-        console.log(uptime);
 
         resolve({uptime});
     });

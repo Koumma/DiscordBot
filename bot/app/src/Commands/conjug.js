@@ -153,6 +153,8 @@ async function getTemps(message, verb, fgender) {
             if (secondPart) {
                 for (let k=1; k<=tempsConjuge.length; k++) {
                     if (k + 1 <= tempsConjuge.length) {
+                        if (tempsConjuge[k - 1].c === "") tempsConjuge[k - 1].c = "NA";
+                        if (tempsConjuge[k].c === "") tempsConjuge[k].c = "NA";
                         embed2.addFields(
                             {
                                 name: tempsConjuge[k - 1].t,
@@ -179,6 +181,8 @@ async function getTemps(message, verb, fgender) {
             else {
                 for (let k=1; k<=tempsConjuge.length; k++) {
                     if (k + 1 <= tempsConjuge.length) {
+                        if (tempsConjuge[k - 1].c === "") tempsConjuge[k - 1].c = "NA";
+                        if (tempsConjuge[k].c === "") tempsConjuge[k].c = "NA";
                         embed1.addFields(
                             {
                                 name: tempsConjuge[k - 1].t,
